@@ -1,129 +1,118 @@
 <?php
 
-use Phianola\App\BoogieWoogie;
-use Phianola\App\Configuration;
+namespace Okay;
 
 class Guzzle
 {
-    const useGuzzle = true;
+    public $client;
+    public $response;
+    public $status;
+    public $headers;
 
-    protected $http;
-
-    protected $sessionKey;
-    protected $scopeKey;
-    protected $config;
-    protected $host;
-
-    function _construct($uri, $headers = [] )
+    function __construct($uri, $headers = [])
     {
-        $this->http = new GuzzleHttp\Client([
+        $this->client = new \GuzzleHttp\Client([
             'base_uri' => $uri,
             'http_errors' => false,
             'headers' => $headers
         ]);
     }
 
-    public function setUp(): void
+    function setFactory($f)
     {
+        
+    }
 
-        $this->config = Configuration::fromFilePath(__DIR__ . "/../../_config/default.inc");
-        $C = $this->config;
-
-        $this->host = $C['phpunit-test-host'];
-        $this->sessionKey = $C['header_key_session_id'];
-        $this->scopeKey = $C['header_key_scope'];
-
-        if (static::useGuzzle) {
-            $this->http = new GuzzleHttp\Client(['base_uri' => $this->host,
-                'http_errors' => false,
-                'headers' => $this->defaultHeaders()]);
-        } else {
-            $appFactory = function() {
-                return (new BoogieWoogie($this->config))->initializeApp();
-                ;
-            };
-
-            $this->http = new Guzzleless($appFactory, [/* 'base_uri' => $this->host, */
-                'http_errors' => false,
-                'headers' => $this->defaultHeaders()]);
+    function __call($method, $args)
+    {
+        if (count($args) < 1) {
+            throw new \InvalidArgumentException('Magic request methods require a URI and optional options array');
         }
+
+        $uri = $args[0];
+        $opts = isset($args[1]) ? $args[1] : [];
+
+        return $this->request($method, $uri, $opts);
     }
 
-    public function tearDown(): void
+    function request($method, $uri = '', $options = [])
     {
-        $this->http = null;
-    }
-    use Slim\Http\Response;
-    public $subject;
-    public $array;
-    public $data;
-    public $value;
+        $response = call_user_func([$this->client, strtolower($method)], $uri, $options);
 
-    function verify($subject)
-    {
-        $this->subject = $subject;
-        $this->data = null;
+        assert(in_array("Psr\Http\Message\ResponseInterface", class_implements($response)));
+
+        $this->response = $response;
+        $this->status = $response->getStatusCode();
+        $this->headers = $response->getHeaders();
+
         return $this;
     }
 
-    function replied($code)
+    function assertCode($code)
     {
-
-        $response = $this->subject;
-
-        $this->assertImplements("Psr\Http\Message\ResponseInterface", $response);
-
-        $status = $response->getStatusCode();
-
-        if ($code != $status) {
-            $body = $response->getBody();
+        if ($code !== $this->status) {
+            $body = $this->response->getBody();
             $data = json_decode($body, true);
-            if ($data === null) error_log("Result was NULL");
-            error_log(print_r($data, true));
+            if ($data === null) error_log("Result was: '{$body}'");
+            if ($data === null) print_r("Result was: '{$body}'");
+            print_r($data);
+            // k_error_log(print_r($data));
         }
 
-        $this->assertEquals($code, $status);
+        assert($code == $this->status, $this->status);
 
         return $this;
     }
 
-    function assertImplements($interface, $instOrClass)
+    function assertContentType($type)
     {
-        $this->assertContains($interface, class_implements($instOrClass));
+        $contentType = $this->headers["Content-Type"][0];
+        assert($type == $contentType, $contentType);
+        return $this;
+    }
+
+    function assertNoContentType($type = null)
+    {
+        assert(!isset($this->headers["Content-Type"]));
+        return $this;
+    }
+
+    function assertHeader($key, $value)
+    {
+        assert ( $value == $this->headers[$key], "actual {$key}: {$value}");
     }
 
     function getJson()
     {
-        return $this->data = json_decode($this->subject->getBody(), JSON_PRETTY_PRINT);
+        return $this->data = json_decode($this->response->getBody(), JSON_PRETTY_PRINT);
     }
-
-    function getArrayNext()
-    {
-        $this->array = $this->array ?? $this->getJson();
-        return $this->data = array_shift($this->array);
-    }
-
-    function dataAt($key)
-    {
-        $this->data = $this->data ?? $this->getJson();
-        $this->value = $this->data[$key];
-        return $this;
-    }
-
-    function is($value)
-    {
-        $this->assertEquals($value, $this->value);
-        return $this;
-    }
-
-    function beginsWith($str)
-    {
-        $this->assertStringStartsWith($str, $this->value);
-        return $this;
-    }
-
-    function assertUlid(string $ulid)
-    {
-        return (1 === preg_match("/^[0-7][0-9A-HJKMNP-Z]{25}$/", $ulid));
-    }
+//    function getArrayNext()
+//    {
+//        $this->array = $this->array ?? $this->getJson();
+//        return $this->data = array_shift($this->array);
+//    }
+//
+//    function dataAt($key)
+//    {
+//        $this->data = $this->data ?? $this->getJson();
+//        $this->value = $this->data[$key];
+//        return $this;
+//    }
+//
+//    function is($value)
+//    {
+//        $this->assertEquals($value, $this->value);
+//        return $this;
+//    }
+//
+//    function beginsWith($str)
+//    {
+//        $this->assertStringStartsWith($str, $this->value);
+//        return $this;
+//    }
+//
+//    function assertUlid(string $ulid)
+//    {
+//        return (1 === preg_match("/^[0-7][0-9A-HJKMNP-Z]{25}$/", $ulid));
+//    }
 }

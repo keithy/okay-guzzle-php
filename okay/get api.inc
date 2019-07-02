@@ -2,6 +2,6 @@
 
 namespace fixture {
     
-    $client = new Okay\Guzzle('https://yesno.wtf');
+    $client = new \Okay\Guzzle('https://yesno.wtf');
   
 }

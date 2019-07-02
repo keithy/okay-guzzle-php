@@ -4,4 +4,6 @@
 .out
 vendor/
 composer.lock
+composer.5.json
+
 
