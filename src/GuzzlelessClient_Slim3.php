@@ -19,7 +19,6 @@ class GuzzlelessClient_Slim3
 
     function request($method, $uriString, $stuff = [], $payload = '', $contentType = null)
     {
-
         $blaggerFn = function( $request ) use ($method, $uriString, $stuff, $payload, $contentType) {
             // your includes
             return GuzzlelessRequest::fromSlimRequest($request, $method, $uriString, $this->properties, $stuff, $payload, $contentType);
@@ -33,20 +32,25 @@ class GuzzlelessClient_Slim3
         return $this->request('GET', "$uriString", $inStuff);
     }
 
-    function post($uriString, $stuff = [])
+    function post($uriString, $stuff = [], $method = 'POST')
     {
         switch (true) {
             case (isset($stuff['form_params']));
 
                 $payload = http_build_query($stuff['form_params'], '', '&');
-                return $this->request('POST', $uriString, $stuff, $payload, 'application/x-www-form-urlencoded');
+                return $this->request($method, $uriString, $stuff, $payload, 'application/x-www-form-urlencoded');
 
             case (isset($stuff['json']));
 
                 $payload = json_encode($stuff['json']);
-                return $this->request('POST', $uriString, $stuff, $payload, 'application/json');
+                return $this->request($method, $uriString, $stuff, $payload, 'application/json');
             default;
-                return $this->request('POST', $uriString, $stuff, '', 'application/json');
+                return $this->request($method, $uriString, $stuff, '', 'application/json');
         }
+    }
+
+    function put($uriString, $stuff = [])
+    {  
+        return $this->post($uriString, $stuff, 'PUT');
     }
 }

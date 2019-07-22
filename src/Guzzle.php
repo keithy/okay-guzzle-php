@@ -36,7 +36,7 @@ class Guzzle
     }
 
     function request($method, $uri = '', $options = [])
-    {
+    {       
         $response = call_user_func([$this->client, strtolower($method)], $uri, $options);
 
         assert(in_array("Psr\Http\Message\ResponseInterface", class_implements($response)));
