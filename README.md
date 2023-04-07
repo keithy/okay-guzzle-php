@@ -1,13 +1,12 @@
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
-[![Build Status](https://travis-ci.com/keithy/okay-php.svg?branch=master)](https://travis-ci.com/keithy/okay-php)
-[![GitHub issues](https://img.shields.io/github/issues/keithy/okay-php.svg)](https://github.com/keithy/okay-php/issues)
-[![Latest Version](https://img.shields.io/github/release/keithy/okay-php.svg)](https://github.com/keithy/okay-php/releases)
-[![PHP from Travis config](https://img.shields.io/travis/php-v/keithy/okay-php.svg)](https://travis-ci.org/keithy/okay-php)
 
-# OKAY 0.9 -  Keeping It Simple Specifications for PHP
+# OKAY 1.0.6 -  Keeping It Simple Specifications for PHP
    
 ## Documentation:
    
-Add on for "okay" for using a webclient.
+This is an add on for "okay/okay". 
 
+Write specs/tests using Guzzle as a webclient to any api.
+
+Locally use Guzzleless to test an api directly hooking into the framework without the overhead of HTTP. (Slim3 implementation)
 
